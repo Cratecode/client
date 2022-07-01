@@ -1,5 +1,5 @@
 {
-  "name": "client",
+  "name": "@cratecode/client",
   "version": "1.0.0",
   "scripts": {
     "build": "tsc",
