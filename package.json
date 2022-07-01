@@ -10,6 +10,11 @@
   "repository": "https://github.com/Cratecode/client.git",
   "author": "Cratecode",
   "license": "Apache-2.0",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "dependencies": {
     "axios": "^0.27.2",
     "form-data": "^4.0.0",
