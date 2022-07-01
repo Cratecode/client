@@ -22,14 +22,11 @@ export async function handleUnit(
     // First, we need to figure out what the actual ID of our unit is.
     // If there isn't one, we'll just set it to null.
     const actualID: string | null = await axios
-        .get(
-          "https://cratecode.com/internal/api/id/" + id,
-            {
-                headers: {
-                    authorization: key,
-                },
+        .get("https://cratecode.com/internal/api/id/" + id, {
+            headers: {
+                authorization: key,
             },
-        )
+        })
         .then((res) => res.data.id)
         .catch((e: AxiosError) => {
             // If none was found, just use null.
@@ -77,7 +74,7 @@ export async function handleUnit(
 
     // Create or update the unit.
     await axios.put(
-      "https://cratecode.com/internal/api/unit/new",
+        "https://cratecode.com/internal/api/unit/new",
         {
             id: actualID,
             friendlyName: id,
@@ -97,14 +94,11 @@ async function mapKey(key: string, state: State): Promise<string> {
     const newKey =
         state.idsMap[key] ||
         (await axios
-            .get(
-              "https://cratecode.com/internal/api/id/" + key,
-                {
-                    headers: {
-                        authorization: key,
-                    },
+            .get("https://cratecode.com/internal/api/id/" + key, {
+                headers: {
+                    authorization: key,
                 },
-            )
+            })
             .then((res) => {
                 state.idsMap[key] = res.data.id;
                 return res.data.id;

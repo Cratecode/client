@@ -1,10 +1,10 @@
-import {Main} from "../proto_video/main";
+import { Main } from "../proto_video/main";
 
 /**
  * Extracts the audio file from a video file.
  * @param video {Buffer} - is the raw video data.
  */
-export function videoToAudio(video: Buffer) : Buffer {
+export function videoToAudio(video: Buffer): Buffer {
     return Buffer.from(Main.fromBinary(new Uint8Array(video)).audio);
 }
 
@@ -13,7 +13,7 @@ export function videoToAudio(video: Buffer) : Buffer {
  * @param initialVideo {Buffer} - is the initial video to use.
  * @param audio {Buffer} - is the new audio to put inside the video.
  */
-export function createVideo(initialVideo: Buffer, audio: Buffer) : Buffer {
+export function createVideo(initialVideo: Buffer, audio: Buffer): Buffer {
     const video = Main.fromBinary(new Uint8Array(initialVideo));
     video.audio = new Uint8Array(audio);
 

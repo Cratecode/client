@@ -48,7 +48,7 @@ export async function readManifest(
                     manifest,
                     templates,
                     Path.join(newBase, item, "manifest.json"),
-                  key,
+                    key,
                 );
             }
         }
@@ -102,7 +102,7 @@ export async function readManifest(
                     spec,
                     extends1 ? Path.join(templates, extends1) : null,
                     Path.dirname(manifest),
-                  key,
+                    key,
                 );
                 break;
             }

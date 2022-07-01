@@ -36,14 +36,11 @@ export async function handleLesson(
     // We need to first figure out what the ID of this lesson is.
     // If it doesn't exist, we'll just set it to null.
     const actualID: string | null = await axios
-        .get(
-          "https://cratecode.com/internal/api/id/" + id,
-            {
-                headers: {
-                    authorization: key,
-                },
+        .get("https://cratecode.com/internal/api/id/" + id, {
+            headers: {
+                authorization: key,
             },
-        )
+        })
         .then((res) => res.data.id)
         .catch((e: AxiosError) => {
             // If none was found, just use null.
@@ -56,14 +53,11 @@ export async function handleLesson(
     // If the lesson doesn't exist, we'll create a project.
     let project: string = actualID
         ? await axios
-              .get(
-                "https://cratecode.com/internal/api/lesson/" + actualID,
-                  {
-                      headers: {
-                          authorization: key,
-                      },
+              .get("https://cratecode.com/internal/api/lesson/" + actualID, {
+                  headers: {
+                      authorization: key,
                   },
-              )
+              })
               .then((res) => res.data.project)
         : null;
     await delay(state);
@@ -71,7 +65,7 @@ export async function handleLesson(
     if (!project) {
         project = await axios
             .post(
-              "https://cratecode.com/internal/api/project/new",
+                "https://cratecode.com/internal/api/project/new",
                 {},
                 {
                     headers: {
@@ -89,7 +83,7 @@ export async function handleLesson(
     // Now that we have a project ID, we can update the lesson entry.
     const lessonID = await axios
         .put(
-          "https://cratecode.com/internal/api/lesson/new",
+            "https://cratecode.com/internal/api/lesson/new",
             {
                 id: actualID,
                 friendlyName: id,
@@ -118,7 +112,7 @@ export async function handleLesson(
         );
 
         await axios.put(
-          "https://cratecode.com/internal/api/config/upload/" + lessonID,
+            "https://cratecode.com/internal/api/config/upload/" + lessonID,
             configForm,
             {
                 headers: {
@@ -139,7 +133,7 @@ export async function handleLesson(
         );
 
         await axios.put(
-          "https://cratecode.com/internal/api/video/upload/" + lessonID,
+            "https://cratecode.com/internal/api/video/upload/" + lessonID,
             videoForm,
             {
                 headers: {
@@ -178,21 +172,19 @@ export async function handleLesson(
     for (const entry of walkEntries) {
         if (!entry[1].isFile()) continue;
 
-        if (["manifest.json", "video.cv", "config.json"].includes(entry[2])) continue;
+        if (["manifest.json", "video.cv", "config.json"].includes(entry[2]))
+            continue;
 
         files[entry[2]] = await fs.promises.readFile(entry[0], "utf-8");
     }
 
     // First, we'll need a token to access the websocket.
     const token = await axios
-        .get(
-          "https://cratecode.com/internal/api/token/" + project,
-            {
-                headers: {
-                    authorization: key,
-                },
+        .get("https://cratecode.com/internal/api/token/" + project, {
+            headers: {
+                authorization: key,
             },
-        )
+        })
         .then((res) => res.data.token);
     if (!token) throw new Error("Could not get a token!");
 
@@ -200,12 +192,13 @@ export async function handleLesson(
     return uploadFiles(token, files);
 }
 
-function uploadFiles(token: string, files: Record<string, string>) : Promise<void> {
+function uploadFiles(
+    token: string,
+    files: Record<string, string>,
+): Promise<void> {
     const filesBackup = { ...files };
 
-    const ws = new WebSocket(
-      "https://cratecode.com/control/" + token,
-    );
+    const ws = new WebSocket("https://cratecode.com/control/" + token);
     ws.binaryType = "arraybuffer";
 
     websockets.push(ws);

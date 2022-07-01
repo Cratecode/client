@@ -6,7 +6,7 @@ import { websockets } from "./lesson";
  * @param manifest {string} - is a path to the manifest file.
  * @param key {string} - is the API key used to upload items.
  */
-export async function upload(manifest: string, key: string) : Promise<void> {
+export async function upload(manifest: string, key: string): Promise<void> {
     const state = {
         itemCount: 0,
         idsMap: {},
