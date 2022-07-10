@@ -43,7 +43,7 @@ export async function handleUnit(
 
     for (const key in lessons) {
         // Map the key.
-        const newKey = await mapKey(key, state);
+        const newKey = await mapID(key, state, key);
 
         // Map next and previous.
         const next = lessons[key].next ?? [];
@@ -58,11 +58,11 @@ export async function handleUnit(
         const newPrevious: string[] = [];
 
         for (const item of next) {
-            newNext.push(await mapKey(item, state));
+            newNext.push(await mapID(item, state, key));
         }
 
         for (const item of previous) {
-            newPrevious.push(await mapKey(item, state));
+            newPrevious.push(await mapID(item, state, key));
         }
 
         map[newKey] = {
@@ -90,17 +90,23 @@ export async function handleUnit(
     await delay(state);
 }
 
-async function mapKey(key: string, state: State): Promise<string> {
+/**
+ * Maps a friendly name or ID to an ID.
+ * @param id {string} - is
+ * @param state
+ * @param key
+ */
+async function mapID(id: string, state: State, key: string): Promise<string> {
     const newKey =
-        state.idsMap[key] ||
+        state.idsMap[id] ||
         (await axios
-            .get("https://cratecode.com/internal/api/id/" + key, {
+            .get("https://cratecode.com/internal/api/id/" + id, {
                 headers: {
                     authorization: key,
                 },
             })
             .then((res) => {
-                state.idsMap[key] = res.data.id;
+                state.idsMap[id] = res.data.id;
                 return res.data.id;
             }));
     await delay(state);
