@@ -198,7 +198,7 @@ function uploadFiles(
 ): Promise<void> {
     const filesBackup = { ...files };
 
-    const ws = new WebSocket("https://cratecode.com/control/" + token);
+    const ws = new WebSocket("wss://cratecode.com/control/" + token);
     ws.binaryType = "arraybuffer";
 
     websockets.push(ws);
