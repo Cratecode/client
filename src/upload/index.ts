@@ -10,10 +10,11 @@ export async function upload(manifest: string, key: string): Promise<void> {
     const state = {
         itemCount: 0,
         idsMap: {},
+        key,
     };
 
     // Open the initial manifest.
-    await readManifest(state, null, null, manifest, key);
+    await readManifest(state, null, null, manifest);
 
     // Now, we should clean up websockets. If all websockets are closed, we can safely exit
     // the program, otherwise we should wait 30 seconds, then force close them and force exit after 5 seconds.
@@ -44,6 +45,10 @@ export interface State {
      * A map from friendly names to IDs.
      */
     idsMap: Record<string, string>;
+    /**
+     * Is the API key to use while uploading.
+     */
+    key: string;
 }
 
 /**

@@ -10,14 +10,12 @@ import { handleLesson } from "./lesson";
  * @param parent {string | null} - is the manifest that referenced this manifest.
  * @param templates {string | null} - is the path to the templates.
  * @param manifest {string} - is the manifest to read.
- * @param key {string} - is the API key used to upload items.
  */
 export async function readManifest(
     state: State,
     parent: string | null,
     templates: string | null,
     manifest: string,
-    key: string,
 ): Promise<void> {
     try {
         const data = JSON.parse(await fs.promises.readFile(manifest, "utf-8"));
@@ -48,7 +46,6 @@ export async function readManifest(
                     manifest,
                     templates,
                     Path.join(newBase, item, "manifest.json"),
-                    key,
                 );
             }
         }
@@ -71,7 +68,7 @@ export async function readManifest(
                 if (typeof lessons !== "object" || Array.isArray(lessons))
                     throw new Error("lessons must be an object!");
 
-                await handleUnit(state, id, name, lessons, key);
+                await handleUnit(state, id, name, lessons);
                 break;
             }
             case "lesson": {
@@ -102,7 +99,6 @@ export async function readManifest(
                     spec,
                     extends1 ? Path.join(templates, extends1) : null,
                     Path.dirname(manifest),
-                    key,
                 );
                 break;
             }

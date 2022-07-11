@@ -7,7 +7,6 @@ import { delay, State } from "./index";
  * @param id {string} - is the friendly name of the unit.
  * @param name {string} - is the display name of the unit.
  * @param lessons {Record<string, object>} - is the lessons map for the unit.
- * @param key {string} - is the API key used to upload items.
  */
 export async function handleUnit(
     state: State,
@@ -17,14 +16,13 @@ export async function handleUnit(
         string,
         { next: string[]; previous: string[]; requireAll?: boolean }
     >,
-    key: string,
 ): Promise<void> {
     // First, we need to figure out what the actual ID of our unit is.
     // If there isn't one, we'll just set it to null.
     const actualID: string | null = await axios
         .get("https://cratecode.com/internal/api/id/" + id, {
             headers: {
-                authorization: key,
+                authorization: state.key,
             },
         })
         .then((res) => res.data.id)
@@ -41,13 +39,13 @@ export async function handleUnit(
         { next: string[]; previous: string[]; requireAll: boolean }
     > = {};
 
-    for (const key in lessons) {
+    for (const lessonID in lessons) {
         // Map the key.
-        const newKey = await mapID(key, state, key);
+        const newKey = await mapID(lessonID, state);
 
         // Map next and previous.
-        const next = lessons[key].next ?? [];
-        const previous = lessons[key].previous ?? [];
+        const next = lessons[lessonID].next ?? [];
+        const previous = lessons[lessonID].previous ?? [];
 
         if (typeof next !== "object" || !Array.isArray(next))
             throw new Error("next must be a string array!");
@@ -58,17 +56,17 @@ export async function handleUnit(
         const newPrevious: string[] = [];
 
         for (const item of next) {
-            newNext.push(await mapID(item, state, key));
+            newNext.push(await mapID(item, state));
         }
 
         for (const item of previous) {
-            newPrevious.push(await mapID(item, state, key));
+            newPrevious.push(await mapID(item, state));
         }
 
         map[newKey] = {
             next: newNext,
             previous: newPrevious,
-            requireAll: Boolean(lessons[key].requireAll),
+            requireAll: Boolean(lessons[lessonID].requireAll),
         };
     }
 
@@ -83,7 +81,7 @@ export async function handleUnit(
         },
         {
             headers: {
-                authorization: key,
+                authorization: state.key,
             },
         },
     );
@@ -92,17 +90,16 @@ export async function handleUnit(
 
 /**
  * Maps a friendly name or ID to an ID.
- * @param id {string} - is
- * @param state
- * @param key
+ * @param id {string} - is the ID or friendly name to lookup.
+ * @param state {State} - is the application's state.
  */
-async function mapID(id: string, state: State, key: string): Promise<string> {
+async function mapID(id: string, state: State): Promise<string> {
     const newKey =
         state.idsMap[id] ||
         (await axios
             .get("https://cratecode.com/internal/api/id/" + id, {
                 headers: {
-                    authorization: key,
+                    authorization: state.key,
                 },
             })
             .then((res) => {

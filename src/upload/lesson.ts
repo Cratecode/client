@@ -22,7 +22,6 @@ export const websockets: WebSocket[] = [];
  * @param spec {string | null} - is the specification of the lesson.
  * @param templateDir {string | null} - is the directory that contains template files for this lesson.
  * @param dir {string} - is the directory that this manifest is contained in.
- * @param key {string} - is the API key used to upload items.
  */
 export async function handleLesson(
     state: State,
@@ -31,14 +30,13 @@ export async function handleLesson(
     spec: string | null,
     templateDir: string | null,
     dir: string,
-    key: string,
 ): Promise<void> {
     // We need to first figure out what the ID of this lesson is.
     // If it doesn't exist, we'll just set it to null.
     const actualID: string | null = await axios
         .get("https://cratecode.com/internal/api/id/" + id, {
             headers: {
-                authorization: key,
+                authorization: state.key,
             },
         })
         .then((res) => res.data.id)
@@ -55,7 +53,7 @@ export async function handleLesson(
         ? await axios
               .get("https://cratecode.com/internal/api/lesson/" + actualID, {
                   headers: {
-                      authorization: key,
+                      authorization: state.key,
                   },
               })
               .then((res) => res.data.project)
@@ -69,7 +67,7 @@ export async function handleLesson(
                 {},
                 {
                     headers: {
-                        authorization: key,
+                        authorization: state.key,
                     },
                 },
             )
@@ -93,7 +91,7 @@ export async function handleLesson(
             },
             {
                 headers: {
-                    authorization: key,
+                    authorization: state.key,
                 },
             },
         )
@@ -117,7 +115,7 @@ export async function handleLesson(
             {
                 headers: {
                     ...configForm.getHeaders(),
-                    authorization: key,
+                    authorization: state.key,
                 },
             },
         );
@@ -138,7 +136,7 @@ export async function handleLesson(
             {
                 headers: {
                     ...videoForm.getHeaders(),
-                    authorization: key,
+                    authorization: state.key,
                 },
             },
         );
@@ -182,7 +180,7 @@ export async function handleLesson(
     const token = await axios
         .get("https://cratecode.com/internal/api/token/" + project, {
             headers: {
-                authorization: key,
+                authorization: state.key,
             },
         })
         .then((res) => res.data.token);
