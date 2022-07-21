@@ -87,9 +87,10 @@ export async function readManifest(
                 if (typeof spec !== "string" && spec !== null)
                     throw new Error("spec must be a string or null!");
 
+                // Extends must be a string or null, and if it isn't null, templates must be defined.
                 if (typeof extends1 !== "string" && extends1 != null)
                     throw new Error("extends must be a string or null!");
-                else if (templates == null)
+                if (typeof extends1 === "string" && templates == null)
                     throw new Error("extends must be used with templates!");
 
                 await handleLesson(
@@ -97,7 +98,7 @@ export async function readManifest(
                     id,
                     name,
                     spec,
-                    extends1 ? Path.join(templates, extends1) : null,
+                    extends1 ? Path.join(templates as string, extends1) : null,
                     Path.dirname(manifest),
                 );
                 break;
