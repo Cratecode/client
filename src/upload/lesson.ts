@@ -11,6 +11,7 @@ import * as ProxyInDeleteFile from "../proto_proxy_in/delete_file";
 import * as ProxyInSetFile from "../proto_proxy_in/set_file";
 import { TextEncoder } from "util";
 import FormData from "form-data";
+import defaultsDeep from "lodash/defaultsDeep";
 
 export const websockets: WebSocket[] = [];
 
@@ -102,12 +103,36 @@ export async function handleLesson(
     if (!lessonID) throw new Error("Could not create or find a lesson!");
 
     // Now, we need to upload the config file, if it exists.
+    let configData: object | null = null;
+
+    // Let's first try the main config.
     if (fs.existsSync(Path.join(dir, "config.json"))) {
-        const configForm = new FormData();
-        configForm.append(
-            "config",
-            fs.createReadStream(Path.join(dir, "config.json")),
+        configData = JSON.parse(
+            fs.readFileSync(Path.join(dir, "config.json"), "utf-8"),
         );
+    }
+
+    // Now, we can try to load the template config object.
+    // We'll use it as a default for the main config object,
+    // so anything added to it is overridable.
+    if (templateDir && fs.existsSync(Path.join(templateDir, "config.json"))) {
+        const templateConfig = JSON.parse(
+            fs.readFileSync(Path.join(templateDir, "config.json"), "utf-8"),
+        );
+        // This will handle configData being null.
+        configData = defaultsDeep(configData, templateConfig);
+    }
+
+    // Now, let's upload the config if it's valid.
+    if (configData) {
+        const configBuffer = Buffer.from(JSON.stringify(configData), "utf-8");
+
+        const configForm = new FormData();
+        configForm.append("config", configBuffer, {
+            filename: "config.json",
+            contentType: "application/json",
+            knownLength: configBuffer.length,
+        });
 
         await axios.put(
             "https://cratecode.com/internal/api/config/upload/" + lessonID,
@@ -123,12 +148,22 @@ export async function handleLesson(
     }
 
     // Next, we need to upload the video, if it exists.
+    let videoPath: string | null = null;
+
+    // We'll use the template video as a default.
+    if (templateDir && fs.existsSync(Path.join(templateDir, "video.cv"))) {
+        videoPath = Path.join(templateDir, "video.cv");
+    }
+
+    // And override it with the main one.
     if (fs.existsSync(Path.join(dir, "video.cv"))) {
+        videoPath = Path.join(dir, "video.cv");
+    }
+
+    // Now, we'll upload the video if it exists.
+    if (videoPath) {
         const videoForm = new FormData();
-        videoForm.append(
-            "video",
-            fs.createReadStream(Path.join(dir, "video.cv")),
-        );
+        videoForm.append("video", fs.createReadStream(videoPath));
 
         await axios.put(
             "https://cratecode.com/internal/api/video/upload/" + lessonID,
