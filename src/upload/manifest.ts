@@ -96,16 +96,17 @@ export async function readManifest(
 
                 // Class must be explicitly defined as null.
                 // If it isn't, it must be a certain value.
-                const classValues = [
-                    "tutorial",
-                    "exercise",
-                    "project",
-                    "challenge",
-                ];
-                if (lessonClass !== null && !classValues.includes(lessonClass))
+                const classMap: Record<string, number> = {
+                    // null: 0
+                    tutorial: 1,
+                    exercise: 2,
+                    project: 3,
+                    challenge: 4,
+                };
+                if (!(lessonClass in classMap) && lessonClass !== null)
                     throw new Error(
                         "class must be null or one of [" +
-                            classValues.join(", ") +
+                            Object.keys(classMap).join(", ") +
                             "]!",
                     );
 
@@ -115,7 +116,7 @@ export async function readManifest(
                     name,
                     spec,
                     extends1 ? Path.join(templates as string, extends1) : null,
-                    lessonClass,
+                    classMap[lessonClass] || 0,
                     Path.dirname(manifest),
                 );
                 break;
