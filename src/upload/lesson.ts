@@ -22,6 +22,7 @@ export const websockets: WebSocket[] = [];
  * @param name {string} - is the display name of the lesson.
  * @param spec {string | null} - is the specification of the lesson.
  * @param templateDir {string | null} - is the directory that contains template files for this lesson.
+ * @param lessonClass {string | null} - is the type or class of lesson that this lessons falls under.
  * @param dir {string} - is the directory that this manifest is contained in.
  */
 export async function handleLesson(
@@ -30,6 +31,7 @@ export async function handleLesson(
     name: string,
     spec: string | null,
     templateDir: string | null,
+    lessonClass: string | null,
     dir: string,
 ): Promise<void> {
     // We need to first figure out what the ID of this lesson is.
@@ -89,6 +91,7 @@ export async function handleLesson(
                 name,
                 project,
                 spec,
+                lessonClass,
             },
             {
                 headers: {

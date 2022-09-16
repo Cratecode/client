@@ -76,6 +76,7 @@ export async function readManifest(
                 const name = data["name"];
                 const spec = data["spec"];
                 const extends1 = data["extends"];
+                const lessonClass = data["class"];
 
                 if (typeof id !== "string")
                     throw new Error("id must be a string!");
@@ -93,12 +94,28 @@ export async function readManifest(
                 if (typeof extends1 === "string" && templates == null)
                     throw new Error("extends must be used with templates!");
 
+                // Class must be explicitly defined as null.
+                // If it isn't, it must be a certain value.
+                const classValues = [
+                    "tutorial",
+                    "exercise",
+                    "project",
+                    "challenge",
+                ];
+                if (lessonClass !== null && !classValues.includes(lessonClass))
+                    throw new Error(
+                        "class must be null or one of [" +
+                            classValues.join(", ") +
+                            "]!",
+                    );
+
                 await handleLesson(
                     state,
                     id,
                     name,
                     spec,
                     extends1 ? Path.join(templates as string, extends1) : null,
+                    lessonClass,
                     Path.dirname(manifest),
                 );
                 break;
