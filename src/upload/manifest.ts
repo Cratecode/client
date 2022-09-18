@@ -115,7 +115,7 @@ export async function readManifest(
                 // If it is a string, it will be made into an array,
                 // and if it's null, it will be made into an empty array.
                 if(Array.isArray(index)) {
-                    if(!index.every(val => typeof val === "string"))
+                    if(index.some(val => typeof val !== "string"))
                         throw new Error("index must be a string, a string array, or null.");
                 } else if(typeof index === "string") {
                     index = [index];
