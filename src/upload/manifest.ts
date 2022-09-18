@@ -77,6 +77,7 @@ export async function readManifest(
                 const spec = data["spec"];
                 const extends1 = data["extends"];
                 const lessonClass = data["class"];
+                let index = data["index"];
 
                 if (typeof id !== "string")
                     throw new Error("id must be a string!");
@@ -110,6 +111,20 @@ export async function readManifest(
                             "]!",
                     );
 
+                // Index can be a string or string array, or null.
+                // If it is a string, it will be made into an array,
+                // and if it's null, it will be made into an empty array.
+                if(Array.isArray(index)) {
+                    if(!index.every(val => typeof val === "string"))
+                        throw new Error("index must be a string, a string array, or null.");
+                } else if(typeof index === "string") {
+                    index = [index];
+                } else if(index == null) {
+                    index = [];
+                } else {
+                    throw new Error("index must be a string, a string array, or null.");
+                }
+
                 await handleLesson(
                     state,
                     id,
@@ -117,6 +132,7 @@ export async function readManifest(
                     spec,
                     extends1 ? Path.join(templates as string, extends1) : null,
                     classMap[lessonClass] || 0,
+                    index,
                     Path.dirname(manifest),
                 );
                 break;
