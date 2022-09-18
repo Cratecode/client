@@ -94,6 +94,9 @@ export async function handleUnit(
  * @param state {State} - is the application's state.
  */
 async function mapID(id: string, state: State): Promise<string> {
+    // IDs starting with a ":" are actual IDs, so we should just remove the ":".
+    if(id.startsWith(":")) return id.substring(1);
+
     const newKey =
         state.idsMap[id] ||
         (await axios
