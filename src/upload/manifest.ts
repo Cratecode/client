@@ -99,7 +99,7 @@ export async function readManifest(
                 const classMap: Record<string, number> = {
                     // null: 0
                     tutorial: 1,
-                    exercise: 2,
+                    activity: 2,
                     project: 3,
                     challenge: 4,
                 };
