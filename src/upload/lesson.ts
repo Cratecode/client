@@ -86,7 +86,7 @@ export async function handleLesson(
     // Now that we have a project ID, we can update the lesson entry.
     const lessonID = await axios
         .put(
-            "https://cratecode.com/internal/api/lesson/new",
+            "https://cratecode.com/internal/api/lesson",
             {
                 id: actualID,
                 friendlyName: id,

@@ -72,7 +72,7 @@ export async function handleUnit(
 
     // Create or update the unit.
     await axios.put(
-        "https://cratecode.com/internal/api/unit/new",
+        "https://cratecode.com/internal/api/unit",
         {
             id: actualID,
             friendlyName: id,
