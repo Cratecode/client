@@ -16,7 +16,7 @@ import defaultsDeep from "lodash/defaultsDeep";
 export const websockets: WebSocket[] = [];
 
 /**
- * Handles a lesson manifest.
+ * Handles a lesson manifest and returns its actual ID.
  * @param state {State} - is the application's state.
  * @param id {string} - is the friendly name of the lesson.
  * @param name {string} - is the display name of the lesson.
@@ -33,7 +33,7 @@ export async function handleLesson(
     templateDir: string | null,
     lessonClass: number,
     dir: string,
-): Promise<void> {
+): Promise<string> {
     // We need to first figure out what the ID of this lesson is.
     // If it doesn't exist, we'll just set it to null.
     const actualID: string | null = await axios
@@ -225,7 +225,10 @@ export async function handleLesson(
     if (!token) throw new Error("Could not get a token!");
 
     // Next, let's open a websocket channel.
-    return uploadFiles(token, files);
+    await uploadFiles(token, files);
+
+    // And finally, return the lesson ID.
+    return lessonID;
 }
 
 function uploadFiles(

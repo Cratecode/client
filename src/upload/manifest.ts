@@ -68,7 +68,9 @@ export async function readManifest(
                 if (typeof lessons !== "object" || Array.isArray(lessons))
                     throw new Error("lessons must be an object!");
 
-                await handleUnit(state, id, name, lessons);
+                const unitID = await handleUnit(state, id, name, lessons);
+                console.log(`Uploaded Unit "${manifest}" (ID: "${unitID}").`);
+
                 break;
             }
             case "lesson": {
@@ -110,7 +112,7 @@ export async function readManifest(
                             "]!",
                     );
 
-                await handleLesson(
+                const lessonID = await handleLesson(
                     state,
                     id,
                     name,
@@ -119,6 +121,8 @@ export async function readManifest(
                     classMap[lessonClass] || 0,
                     Path.dirname(manifest),
                 );
+                console.log(`Uploaded Lesson "${manifest}" (ID: "${lessonID}").`);
+
                 break;
             }
             default: {
@@ -127,8 +131,6 @@ export async function readManifest(
                 );
             }
         }
-
-        console.log(`Uploaded ${manifest}.`);
 
         // Handle delays.
         await delay(state);

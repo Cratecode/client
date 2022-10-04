@@ -2,7 +2,7 @@ import axios, { AxiosError } from "axios";
 import { delay, State } from "./index";
 
 /**
- * Handles a unit manifest.
+ * Handles a unit manifest and returns its actual ID.
  * @param state {State} - is the application's state.
  * @param id {string} - is the friendly name of the unit.
  * @param name {string} - is the display name of the unit.
@@ -16,7 +16,7 @@ export async function handleUnit(
         string,
         { next: string[]; previous: string[]; requireAll?: boolean }
     >,
-): Promise<void> {
+): Promise<string> {
     // First, we need to figure out what the actual ID of our unit is.
     // If there isn't one, we'll just set it to null.
     const actualID: string | null = await axios
@@ -71,7 +71,7 @@ export async function handleUnit(
     }
 
     // Create or update the unit.
-    await axios.put(
+    const unitID = await axios.put(
         "https://cratecode.com/internal/api/unit",
         {
             id: actualID,
@@ -84,8 +84,11 @@ export async function handleUnit(
                 authorization: state.key,
             },
         },
-    );
+    ).then((res) => res.data.id as string);
     await delay(state);
+
+    // And finally, return the unit ID.
+    return unitID;
 }
 
 /**
