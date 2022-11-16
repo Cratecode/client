@@ -1,5 +1,5 @@
 import { delay, sleep, State } from "./index";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import walkdir from "walkdir";
 import * as fs from "fs";
 import * as Path from "path";
@@ -12,6 +12,7 @@ import * as ProxyInSetFile from "../proto_proxy_in/set_file";
 import { TextEncoder } from "util";
 import FormData from "form-data";
 import defaultsDeep from "lodash/defaultsDeep";
+import { mapID } from "./util";
 
 export const websockets: WebSocket[] = [];
 
@@ -20,6 +21,7 @@ export const websockets: WebSocket[] = [];
  * @param state {State} - is the application's state.
  * @param id {string} - is the friendly name of the lesson.
  * @param name {string} - is the display name of the lesson.
+ * @param unit {string | null} - is the canonical unit for this lesson (for SEO).
  * @param spec {string | null} - is the specification of the lesson.
  * @param templateDir {string | null} - is the directory that contains template files for this lesson.
  * @param lessonClass {number} - is the type or class of lesson that this lesson falls under.
@@ -29,6 +31,7 @@ export async function handleLesson(
     state: State,
     id: string,
     name: string,
+    unit: string | null,
     spec: string | null,
     templateDir: string | null,
     lessonClass: number,
@@ -36,19 +39,10 @@ export async function handleLesson(
 ): Promise<string> {
     // We need to first figure out what the ID of this lesson is.
     // If it doesn't exist, we'll just set it to null.
-    const actualID: string | null = await axios
-        .get("https://cratecode.com/internal/api/id/" + id, {
-            headers: {
-                authorization: state.key,
-            },
-        })
-        .then((res) => res.data.id)
-        .catch((e: AxiosError) => {
-            // If none was found, just use null.
-            if (e.response?.status === 404) return null;
-            throw e;
-        });
-    await delay(state);
+    const actualID = await mapID(id, state);
+
+    // We'll also figure out the unit ID.
+    const actualUnitID = await mapID(unit, state);
 
     // Next, we'll need to figure out what this lesson's project is.
     // If the lesson doesn't exist, we'll create a project.
@@ -89,6 +83,7 @@ export async function handleLesson(
                 id: actualID,
                 friendlyName: id,
                 name,
+                unit: actualUnitID,
                 project,
                 spec,
                 lessonClass,

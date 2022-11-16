@@ -76,6 +76,7 @@ export async function readManifest(
             case "lesson": {
                 const id = data["id"];
                 const name = data["name"];
+                const unit = data["unit"];
                 const spec = data["spec"];
                 const extends1 = data["extends"];
                 const lessonClass = data["class"];
@@ -85,6 +86,10 @@ export async function readManifest(
 
                 if (typeof name !== "string")
                     throw new Error("name must be a string!");
+
+                // Unit must be explicitly defined as null.
+                if (typeof unit !== "string" && unit !== null)
+                    throw new Error("unit must be a string or null!");
 
                 // Spec must be explicitly defined as null.
                 if (typeof spec !== "string" && spec !== null)
@@ -116,6 +121,7 @@ export async function readManifest(
                     state,
                     id,
                     name,
+                    unit,
                     spec,
                     extends1 ? Path.join(templates as string, extends1) : null,
                     classMap[lessonClass] || 0,

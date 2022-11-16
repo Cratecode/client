@@ -1,5 +1,6 @@
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import { delay, State } from "./index";
+import { mapID, mapIDNoNull } from "./util";
 
 /**
  * Handles a unit manifest and returns its actual ID.
@@ -19,19 +20,7 @@ export async function handleUnit(
 ): Promise<string> {
     // First, we need to figure out what the actual ID of our unit is.
     // If there isn't one, we'll just set it to null.
-    const actualID: string | null = await axios
-        .get("https://cratecode.com/internal/api/id/" + id, {
-            headers: {
-                authorization: state.key,
-            },
-        })
-        .then((res) => res.data.id)
-        .catch((e: AxiosError) => {
-            // If none was found, just use null.
-            if (e.response?.status === 404) return null;
-            throw e;
-        });
-    await delay(state);
+    const actualID = await mapID(id, state);
 
     // Next, we need to go through the lessons and map from friendly names to ids.
     const map: Record<
@@ -41,7 +30,7 @@ export async function handleUnit(
 
     for (const lessonID in lessons) {
         // Map the key.
-        const newKey = await mapID(lessonID, state);
+        const newKey = await mapIDNoNull(lessonID, state);
 
         // Map next and previous.
         const next = lessons[lessonID].next ?? [];
@@ -56,11 +45,11 @@ export async function handleUnit(
         const newPrevious: string[] = [];
 
         for (const item of next) {
-            newNext.push(await mapID(item, state));
+            newNext.push(await mapIDNoNull(item, state));
         }
 
         for (const item of previous) {
-            newPrevious.push(await mapID(item, state));
+            newPrevious.push(await mapIDNoNull(item, state));
         }
 
         map[newKey] = {
@@ -71,48 +60,24 @@ export async function handleUnit(
     }
 
     // Create or update the unit.
-    const unitID = await axios.put(
-        "https://cratecode.com/internal/api/unit",
-        {
-            id: actualID,
-            friendlyName: id,
-            name,
-            data: map,
-        },
-        {
-            headers: {
-                authorization: state.key,
+    const unitID = await axios
+        .put(
+            "https://cratecode.com/internal/api/unit",
+            {
+                id: actualID,
+                friendlyName: id,
+                name,
+                data: map,
             },
-        },
-    ).then((res) => res.data.id as string);
+            {
+                headers: {
+                    authorization: state.key,
+                },
+            },
+        )
+        .then((res) => res.data.id as string);
     await delay(state);
 
     // And finally, return the unit ID.
     return unitID;
-}
-
-/**
- * Maps a friendly name or ID to an ID.
- * @param id {string} - is the ID or friendly name to lookup.
- * @param state {State} - is the application's state.
- */
-async function mapID(id: string, state: State): Promise<string> {
-    // IDs starting with a ":" are actual IDs, so we should just remove the ":".
-    if(id.startsWith(":")) return id.substring(1);
-
-    const newKey =
-        state.idsMap[id] ||
-        (await axios
-            .get("https://cratecode.com/internal/api/id/" + id, {
-                headers: {
-                    authorization: state.key,
-                },
-            })
-            .then((res) => {
-                state.idsMap[id] = res.data.id;
-                return res.data.id;
-            }));
-    await delay(state);
-
-    return newKey;
 }
