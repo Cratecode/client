@@ -1,5 +1,6 @@
 import { readManifest } from "./manifest";
 import { websockets } from "./lesson";
+import axios from "axios";
 
 /**
  * Uploads a project to Cratecode.
@@ -7,6 +8,27 @@ import { websockets } from "./lesson";
  * @param key {string} - is the API key used to upload items.
  */
 export async function upload(manifest: string, key: string): Promise<void> {
+    // When we hit a 429 (ratelimit), we'll wait 1 minute and retry.
+    axios.interceptors.response.use(
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        () => {},
+        (error) => {
+            if (error?.config && error.response?.status === 403) {
+                // Axios will double stringify if we don't do this.
+                try {
+                    if (error.config.data)
+                        error.config.data = JSON.parse(error.config.data);
+                } catch (_) {
+                    // This will trigger if data wasn't actually JSON (which is fine).
+                }
+
+                return sleep(60 * 1000).then(() => axios.request(error.config));
+            }
+
+            return Promise.reject(error);
+        },
+    );
+
     const state = {
         itemCount: 0,
         idsMap: {},
