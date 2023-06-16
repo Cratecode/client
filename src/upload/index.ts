@@ -15,8 +15,9 @@ export async function upload(manifest: string, key: string): Promise<void> {
             if (error?.config && error.response?.status === 429) {
                 // Axios will double stringify if we don't do this.
                 try {
-                    if (error.config.data)
+                    if (error.config.data) {
                         error.config.data = JSON.parse(error.config.data);
+                    }
                 } catch (_) {
                     // This will trigger if data wasn't actually JSON (which is fine).
                 }

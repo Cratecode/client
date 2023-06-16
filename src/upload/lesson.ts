@@ -231,8 +231,9 @@ export async function handleLesson(
     for (const entry of walkEntries) {
         if (!entry[1].isFile()) continue;
 
-        if (["manifest.json", "video.cv", "config.json"].includes(entry[2]))
+        if (["manifest.json", "video.cv", "config.json"].includes(entry[2])) {
             continue;
+        }
 
         files[entry[2]] = await fs.promises.readFile(entry[0], "utf-8");
     }

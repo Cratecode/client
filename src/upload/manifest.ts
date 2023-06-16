@@ -19,15 +19,17 @@ export async function readManifest(
 ): Promise<void> {
     try {
         const data = JSON.parse(await fs.promises.readFile(manifest, "utf-8"));
-        if (typeof data !== "object" || Array.isArray(data))
+        if (typeof data !== "object" || Array.isArray(data)) {
             throw new Error("Manifest must be an object!");
+        }
 
         const newBase = Path.dirname(manifest);
 
         // Handle new templates.
         if (data["templates"]) {
-            if (typeof data["templates"] !== "string")
+            if (typeof data["templates"] !== "string") {
                 throw new Error("Templates must be a string!");
+            }
 
             state.templates = Path.join(newBase, data["templates"]);
         }
@@ -37,20 +39,23 @@ export async function readManifest(
             if (
                 typeof data["configTemplate"] !== "object" &&
                 !Array.isArray(data["configTemplate"])
-            )
+            ) {
                 throw new Error("Templates must be a string!");
+            }
 
             state.configTemplate = data["configTemplate"];
         }
 
         // Read and handle other referenced manifests.
         if (data["upload"]) {
-            if (typeof data !== "object" || !Array.isArray(data["upload"]))
+            if (typeof data !== "object" || !Array.isArray(data["upload"])) {
                 throw new Error("Upload must be an array!");
+            }
 
             for (const item of data["upload"] as unknown[]) {
-                if (typeof item !== "string")
+                if (typeof item !== "string") {
                     throw new Error("Upload must be a string array!");
+                }
 
                 await readManifest(
                     { ...state },
@@ -71,12 +76,15 @@ export async function readManifest(
                 const name = data["name"];
                 const lessons = data["lessons"];
 
-                if (typeof id !== "string")
+                if (typeof id !== "string") {
                     throw new Error("id must be a string!");
-                if (typeof name !== "string")
+                }
+                if (typeof name !== "string") {
                     throw new Error("name must be a string!");
-                if (typeof lessons !== "object" || Array.isArray(lessons))
+                }
+                if (typeof lessons !== "object" || Array.isArray(lessons)) {
                     throw new Error("lessons must be an object!");
+                }
 
                 const unitID = await handleUnit(
                     { ...state },
@@ -96,31 +104,37 @@ export async function readManifest(
                 const extendsTemplate = data["extends"];
                 const lessonClass = data["class"];
 
-                if (typeof id !== "string")
+                if (typeof id !== "string") {
                     throw new Error("id must be a string!");
+                }
 
-                if (typeof name !== "string")
+                if (typeof name !== "string") {
                     throw new Error("name must be a string!");
+                }
 
                 // Unit must be explicitly defined as null.
-                if (typeof unit !== "string" && unit !== null)
+                if (typeof unit !== "string" && unit !== null) {
                     throw new Error("unit must be a string or null!");
+                }
 
                 // Spec must be explicitly defined as null.
-                if (typeof spec !== "string" && spec !== null)
+                if (typeof spec !== "string" && spec !== null) {
                     throw new Error("spec must be a string or null!");
+                }
 
                 // Extends must be a string or null, and if it isn't null, templates must be defined.
                 if (
                     typeof extendsTemplate !== "string" &&
                     extendsTemplate != null
-                )
+                ) {
                     throw new Error("extends must be a string or null!");
+                }
                 if (
                     typeof extendsTemplate === "string" &&
                     state.templates == null
-                )
+                ) {
                     throw new Error("extends must be used with templates!");
+                }
 
                 // Class must be explicitly defined as null.
                 // If it isn't, it must be a certain value.
@@ -131,12 +145,13 @@ export async function readManifest(
                     project: 3,
                     challenge: 4,
                 };
-                if (!(lessonClass in classMap) && lessonClass !== null)
+                if (!(lessonClass in classMap) && lessonClass !== null) {
                     throw new Error(
                         "class must be null or one of [" +
                             Object.keys(classMap).join(", ") +
                             "]!",
                     );
+                }
 
                 const lessonID = await handleLesson(
                     { ...state },

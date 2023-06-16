@@ -36,10 +36,12 @@ export async function handleUnit(
         const next = lessons[lessonID].next ?? [];
         const previous = lessons[lessonID].previous ?? [];
 
-        if (typeof next !== "object" || !Array.isArray(next))
+        if (typeof next !== "object" || !Array.isArray(next)) {
             throw new Error("next must be a string array!");
-        if (typeof previous !== "object" || !Array.isArray(previous))
+        }
+        if (typeof previous !== "object" || !Array.isArray(previous)) {
             throw new Error("previous must be a string array!");
+        }
 
         const newNext: string[] = [];
         const newPrevious: string[] = [];

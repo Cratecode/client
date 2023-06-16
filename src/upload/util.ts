@@ -47,8 +47,9 @@ export async function mapIDNoNull(
     state: State,
 ): Promise<string> {
     const mappedID = await mapID(id, state);
-    if (mappedID === null)
+    if (mappedID === null) {
         throw new Error("Could not find an ID for " + id + ".");
+    }
 
     return mappedID;
 }

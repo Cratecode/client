@@ -1,2 +1,6 @@
 node_modules
 dist
+src/proto_proxy_in
+src/proto_proxy_out
+src/proto_video
+protobuf
