@@ -23,7 +23,7 @@ export const websockets: WebSocket[] = [];
  * @param name {string} - is the display name of the lesson.
  * @param unit {string | null} - is the canonical unit for this lesson (for SEO).
  * @param spec {string | null} - is the specification of the lesson.
- * @param templateDir {string | null} - is the directory that contains template files for this lesson.
+ * @param extendsTemplate {string | null} - is the template that this lesson extends.
  * @param lessonClass {number} - is the type or class of lesson that this lesson falls under.
  * @param dir {string} - is the directory that this manifest is contained in.
  */
@@ -33,10 +33,16 @@ export async function handleLesson(
     name: string,
     unit: string | null,
     spec: string | null,
-    templateDir: string | null,
+    extendsTemplate: string | null,
     lessonClass: number,
     dir: string,
 ): Promise<string> {
+    // If we're using a template, we should resolve it.
+    const templateDir =
+        extendsTemplate && state.templates
+            ? Path.join(state.templates, extendsTemplate)
+            : null;
+
     // We need to first figure out what the ID of this lesson is.
     // If it doesn't exist, we'll just set it to null.
     const actualID = await mapID(id, state);
@@ -100,29 +106,51 @@ export async function handleLesson(
     // If there's still no lesson, throw an error.
     if (!lessonID) throw new Error("Could not create or find a lesson!");
 
-    // Now, we need to upload the config file, if it exists.
-    let configData: object | null = null;
+    // Now, we'll handle the configs.
+    // There are three "tiers" of configs:
+    // - Lesson configs
+    // - Template configs
+    // - The current config template
+    //
+    // Lesson configs are the config.json file inside of this lesson.
+    // Template configs are the config.json inside of the template we're extending if it exists.
+    // The config template is the template defined in our parent manifest (or its parent...) if it exists.
+    //
+    // Template configs let templates define default values, and the config template lets us define default values
+    // that work more globally (for example, the root manifest may define some default values).
+    // The config template that's used will be the most "recently defined" one, in regard to the child.
+    // For example, if unit1 -> unit2 -> lesson has config templates defined on both units, only unit2's config
+    // override will be used in lesson.
+    //
+    // These tiers define how they work when overridden.
+    // Objects will be deeply merged, but anything other than objects (including arrays) will always be overridden by
+    // the highest object that defines it.
+    // Lesson configs always take precedence over template configs, and template configs take precedence over
+    // config templates.
+    const lessonConfig: object | null = fs.existsSync(
+        Path.join(dir, "config.json"),
+    )
+        ? JSON.parse(fs.readFileSync(Path.join(dir, "config.json"), "utf-8"))
+        : null;
+    const templateConfig: object | null =
+        templateDir && fs.existsSync(Path.join(templateDir, "config.json"))
+            ? JSON.parse(
+                  fs.readFileSync(
+                      Path.join(templateDir, "config.json"),
+                      "utf-8",
+                  ),
+              )
+            : null;
 
-    // Let's first try the main config.
-    if (fs.existsSync(Path.join(dir, "config.json"))) {
-        configData = JSON.parse(
-            fs.readFileSync(Path.join(dir, "config.json"), "utf-8"),
-        );
-    }
-
-    // Now, we can try to load the template config object.
-    // We'll use it as a default for the main config object,
-    // so anything added to it is overridable.
-    if (templateDir && fs.existsSync(Path.join(templateDir, "config.json"))) {
-        const templateConfig = JSON.parse(
-            fs.readFileSync(Path.join(templateDir, "config.json"), "utf-8"),
-        );
-        // This will handle configData being null.
-        configData = defaultsDeep(configData, templateConfig);
-    }
+    const configData: object | null =
+        lessonConfig || templateConfig || state.configTemplate
+            ? defaultsDeep(lessonConfig, templateConfig, state.configTemplate)
+            : null;
 
     // Now, let's upload the config if it's valid.
     if (configData) {
+        // TODO: Add config "linting".
+
         const configBuffer = Buffer.from(JSON.stringify(configData), "utf-8");
 
         const configForm = new FormData();

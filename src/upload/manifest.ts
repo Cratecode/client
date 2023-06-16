@@ -7,14 +7,14 @@ import { handleLesson } from "./lesson";
 /**
  * Reads and handles a manifest file.
  * @param state {State} - is the state of the application.
+ * This object MUST be unique to this method. However, the items it contains
+ * may not be.
  * @param parent {string | null} - is the manifest that referenced this manifest.
- * @param templates {string | null} - is the path to the templates.
  * @param manifest {string} - is the manifest to read.
  */
 export async function readManifest(
     state: State,
     parent: string | null,
-    templates: string | null,
     manifest: string,
 ): Promise<void> {
     try {
@@ -29,7 +29,18 @@ export async function readManifest(
             if (typeof data["templates"] !== "string")
                 throw new Error("Templates must be a string!");
 
-            templates = Path.join(newBase, data["templates"]);
+            state.templates = Path.join(newBase, data["templates"]);
+        }
+
+        // Handle new config template.
+        if (data["configTemplate"]) {
+            if (
+                typeof data["configTemplate"] !== "object" &&
+                !Array.isArray(data["configTemplate"])
+            )
+                throw new Error("Templates must be a string!");
+
+            state.configTemplate = data["configTemplate"];
         }
 
         // Read and handle other referenced manifests.
@@ -42,9 +53,8 @@ export async function readManifest(
                     throw new Error("Upload must be a string array!");
 
                 await readManifest(
-                    state,
+                    { ...state },
                     manifest,
-                    templates,
                     Path.join(newBase, item, "manifest.json"),
                 );
             }
@@ -68,7 +78,12 @@ export async function readManifest(
                 if (typeof lessons !== "object" || Array.isArray(lessons))
                     throw new Error("lessons must be an object!");
 
-                const unitID = await handleUnit(state, id, name, lessons);
+                const unitID = await handleUnit(
+                    { ...state },
+                    id,
+                    name,
+                    lessons,
+                );
                 console.log(`Uploaded Unit "${manifest}" (ID: "${unitID}").`);
 
                 break;
@@ -78,7 +93,7 @@ export async function readManifest(
                 const name = data["name"];
                 const unit = data["unit"];
                 const spec = data["spec"];
-                const extends1 = data["extends"];
+                const extendsTemplate = data["extends"];
                 const lessonClass = data["class"];
 
                 if (typeof id !== "string")
@@ -96,9 +111,15 @@ export async function readManifest(
                     throw new Error("spec must be a string or null!");
 
                 // Extends must be a string or null, and if it isn't null, templates must be defined.
-                if (typeof extends1 !== "string" && extends1 != null)
+                if (
+                    typeof extendsTemplate !== "string" &&
+                    extendsTemplate != null
+                )
                     throw new Error("extends must be a string or null!");
-                if (typeof extends1 === "string" && templates == null)
+                if (
+                    typeof extendsTemplate === "string" &&
+                    state.templates == null
+                )
                     throw new Error("extends must be used with templates!");
 
                 // Class must be explicitly defined as null.
@@ -118,16 +139,18 @@ export async function readManifest(
                     );
 
                 const lessonID = await handleLesson(
-                    state,
+                    { ...state },
                     id,
                     name,
                     unit,
                     spec,
-                    extends1 ? Path.join(templates as string, extends1) : null,
+                    extendsTemplate,
                     classMap[lessonClass] || 0,
                     Path.dirname(manifest),
                 );
-                console.log(`Uploaded Lesson "${manifest}" (ID: "${lessonID}").`);
+                console.log(
+                    `Uploaded Lesson "${manifest}" (ID: "${lessonID}").`,
+                );
 
                 break;
             }

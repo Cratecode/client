@@ -10,10 +10,9 @@ import axios from "axios";
 export async function upload(manifest: string, key: string): Promise<void> {
     // When we hit a 429 (ratelimit), we'll wait 1 minute and retry.
     axios.interceptors.response.use(
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        () => {},
+        (res) => res,
         (error) => {
-            if (error?.config && error.response?.status === 403) {
+            if (error?.config && error.response?.status === 429) {
                 // Axios will double stringify if we don't do this.
                 try {
                     if (error.config.data)
@@ -30,13 +29,15 @@ export async function upload(manifest: string, key: string): Promise<void> {
     );
 
     const state = {
-        itemCount: 0,
+        itemCount: { value: 0 },
         idsMap: {},
         key,
+        templates: null,
+        configTemplate: null,
     };
 
     // Open the initial manifest.
-    await readManifest(state, null, null, manifest);
+    await readManifest(state, null, manifest);
 
     // Now, we should clean up websockets. If all websockets are closed, we can safely exit
     // the program, otherwise we should wait 30 seconds, then force close them and force exit after 5 seconds.
@@ -62,7 +63,7 @@ export interface State {
     /**
      * The number of requests sent.
      */
-    itemCount: number;
+    itemCount: { value: number };
     /**
      * A map from friendly names to IDs.
      */
@@ -71,6 +72,14 @@ export interface State {
      * Is the API key to use while uploading.
      */
     key: string;
+    /**
+     * Is the path to the templates directory.
+     */
+    templates: string | null;
+    /**
+     * The template to apply to all lesson configs.
+     */
+    configTemplate: object | null;
 }
 
 /**
@@ -88,7 +97,7 @@ export function sleep(ms: number): Promise<void> {
  * @param state {State} - is the state.
  */
 export async function delay(state: State): Promise<void> {
-    if (++state.itemCount % 50 === 0) {
+    if (++state.itemCount.value % 50 === 0) {
         console.log("Hit ratelimit, sleeping.");
         await sleep(60 * 1000);
         console.log("Waking up.");
