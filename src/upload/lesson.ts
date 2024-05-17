@@ -21,6 +21,7 @@ export const websockets: WebSocket[] = [];
  * @param state {State} - is the application's state.
  * @param id {string} - is the friendly name of the lesson.
  * @param name {string} - is the display name of the lesson.
+ * @param description {string} - is a short description for the lesson.
  * @param unit {string | null} - is the canonical unit for this lesson (for SEO).
  * @param spec {string | null} - is the specification of the lesson.
  * @param extendsTemplate {string | null} - is the template that this lesson extends.
@@ -31,6 +32,7 @@ export async function handleLesson(
     state: State,
     id: string,
     name: string,
+    description: string,
     unit: string | null,
     spec: string | null,
     extendsTemplate: string | null,
@@ -89,6 +91,7 @@ export async function handleLesson(
                 id: actualID,
                 friendlyName: id,
                 name,
+                description,
                 unit: actualUnitID,
                 project,
                 spec,

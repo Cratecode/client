@@ -111,6 +111,7 @@ export async function readManifest(
             case "lesson": {
                 const id = data["id"];
                 const name = data["name"];
+                const description = data["description"];
                 const unit = data["unit"];
                 const spec = data["spec"];
                 const extendsTemplate = data["extends"];
@@ -124,13 +125,15 @@ export async function readManifest(
                     throw new Error("name must be a string!");
                 }
 
-                // Unit must be explicitly defined as null.
-                if (typeof unit !== "string" && unit !== null) {
+                if (typeof description != "string" && description != null) {
+                    throw new Error("description must be a string or null!");
+                }
+
+                if (typeof unit !== "string" && unit != null) {
                     throw new Error("unit must be a string or null!");
                 }
 
-                // Spec must be explicitly defined as null.
-                if (typeof spec !== "string" && spec !== null) {
+                if (typeof spec !== "string" && spec != null) {
                     throw new Error("spec must be a string or null!");
                 }
 
@@ -148,8 +151,7 @@ export async function readManifest(
                     throw new Error("extends must be used with templates!");
                 }
 
-                // Class must be explicitly defined as null.
-                // If it isn't, it must be a certain value.
+                // Class must be null or one of the below values.
                 const classMap: Record<string, number> = {
                     // null: 0
                     tutorial: 1,
@@ -157,7 +159,7 @@ export async function readManifest(
                     project: 3,
                     challenge: 4,
                 };
-                if (!(lessonClass in classMap) && lessonClass !== null) {
+                if (!(lessonClass in classMap) && lessonClass != null) {
                     throw new Error(
                         "class must be null or one of [" +
                             Object.keys(classMap).join(", ") +
@@ -169,6 +171,7 @@ export async function readManifest(
                     { ...state },
                     id,
                     name,
+                    description,
                     unit,
                     spec,
                     extendsTemplate,
