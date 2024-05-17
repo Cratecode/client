@@ -35,6 +35,7 @@ export async function upload(manifest: string, key: string): Promise<void> {
         key,
         templates: null,
         configTemplate: null,
+        images: null,
     };
 
     // Open the initial manifest.
@@ -81,6 +82,19 @@ export interface State {
      * The template to apply to all lesson configs.
      */
     configTemplate: object | null;
+    /**
+     * Is a map of all image filenames (case-sensitive)
+     * to their IDs, widths (px), and heights (px).
+     */
+    images: Record<
+        string,
+        {
+            id: string;
+            format: string;
+            width: number | undefined;
+            height: number | undefined;
+        }
+    > | null;
 }
 
 /**

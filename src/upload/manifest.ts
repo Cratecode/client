@@ -3,6 +3,7 @@ import * as fs from "fs";
 import { handleUnit } from "./unit";
 import * as Path from "path";
 import { handleLesson } from "./lesson";
+import { uploadImages } from "./images";
 
 /**
  * Reads and handles a manifest file.
@@ -34,13 +35,24 @@ export async function readManifest(
             state.templates = Path.join(newBase, data["templates"]);
         }
 
+        // Handle new images.
+        if (data["images"]) {
+            if (typeof data["images"] !== "string") {
+                throw new Error("Images must be a string!");
+            }
+
+            const imagesDir = Path.join(newBase, data["images"]);
+
+            state.images = await uploadImages(state, imagesDir);
+        }
+
         // Handle new config template.
         if (data["configTemplate"]) {
             if (
                 typeof data["configTemplate"] !== "object" &&
                 !Array.isArray(data["configTemplate"])
             ) {
-                throw new Error("Templates must be a string!");
+                throw new Error("Config Template must be an object!");
             }
 
             state.configTemplate = data["configTemplate"];

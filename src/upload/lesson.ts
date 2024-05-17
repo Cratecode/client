@@ -236,6 +236,40 @@ export async function handleLesson(
         }
 
         files[entry[2]] = await fs.promises.readFile(entry[0], "utf-8");
+
+        // Special handling for README files.
+        if (entry[0].endsWith("/README.md")) {
+            files[entry[2]] = files[entry[2]].replace(
+                /\$\$IMAGE\s+([^$\s]+)(?:\s+([^$\s]+))?\$\$/g,
+                (_, name, alt) => {
+                    if (!state.images) {
+                        throw new Error(
+                            "An images folder must be set before images can be used.",
+                        );
+                    }
+
+                    const fileRecord = state.images[name];
+                    if (!fileRecord) {
+                        throw new Error('Could not find image "' + name + '".');
+                    }
+
+                    const sizeMetadata =
+                        fileRecord.width && fileRecord.height
+                            ? "{" +
+                              fileRecord.width +
+                              "x" +
+                              fileRecord.height +
+                              "}"
+                            : "";
+
+                    const url = `https://img.cdn.cratecode.com/userfiles/img/${fileRecord.id}.${fileRecord.format}`;
+
+                    return `![${[alt, sizeMetadata]
+                        .filter(Boolean)
+                        .join(" ")}](${url})`;
+                },
+            );
+        }
     }
 
     // First, we'll need a token to access the websocket.
