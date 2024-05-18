@@ -243,7 +243,7 @@ export async function handleLesson(
         // Special handling for README files.
         if (entry[0].endsWith("/README.md")) {
             files[entry[2]] = files[entry[2]].replace(
-                /\$\$IMAGE\s+([^$\s]+)(?:\s+([^$\s]+))?\$\$/g,
+                /\$\$IMAGE\s+([^$\s]+)(?:\s+([^$]+))?\$\$/g,
                 (_, name, alt) => {
                     if (!state.images) {
                         throw new Error(

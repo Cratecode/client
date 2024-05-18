@@ -1,7 +1,7 @@
 import { State } from "./index";
 import axios from "axios";
 import crypto from "crypto";
-import fs from "fs/promises";
+import fs from "fs";
 import Path from "path";
 import FormData from "form-data";
 import { imageSize } from "image-size";
@@ -39,7 +39,7 @@ export async function uploadImages(
         })
     ).data as { id: string; hash: string; format: string }[];
 
-    const filesNames = await fs.readdir(path);
+    const filesNames = await fs.promises.readdir(path);
     const output: Record<
         string,
         {
@@ -55,7 +55,9 @@ export async function uploadImages(
         const format = Path.extname(fileName).slice(1);
         const hash = await getFileHash(filePath);
 
-        const { width, height } = imageSize(await fs.readFile(filePath));
+        const { width, height } = imageSize(
+            await fs.promises.readFile(filePath),
+        );
 
         const uploadedFile = uploadedList.find(
             (file) => file.format === format && file.hash === hash,
@@ -64,9 +66,7 @@ export async function uploadImages(
         if (!uploadedFile) {
             // File with same hash and format not found, upload it
             const formData = new FormData();
-            formData.append("file", fs.readFile(filePath), {
-                filename: fileName,
-            });
+            formData.append("file", fs.createReadStream(filePath));
             const uploadResult = await axios.put(
                 `https://cratecode.com/internal/api/file/image/upload/${format}`,
                 formData,
@@ -77,14 +77,19 @@ export async function uploadImages(
                     },
                 },
             );
+
             output[fileName] = {
                 id: uploadResult.data.id,
                 format,
                 width,
                 height,
             };
+
+            console.log(`Uploaded Image "${filePath}".`);
         } else {
             output[fileName] = { id: uploadedFile.id, format, width, height };
+
+            console.log(`Verified Image "${filePath}".`);
         }
     }
 
@@ -99,7 +104,7 @@ export async function uploadImages(
 async function getFileHash(path: string): Promise<string> {
     return crypto
         .createHash("sha256")
-        .update(await fs.readFile(path))
+        .update(await fs.promises.readFile(path))
         .digest("hex")
         .substring(0, 16);
 }
