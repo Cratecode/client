@@ -349,14 +349,22 @@ function uploadFiles(
                     );
 
                     // First, delete any files that don't exist in our list of files.
-                    const items = Object.keys(files);
                     for (const file of inner_message.files) {
+                        if (!file.path || !file.data) continue;
+
+                        // Sometimes, the returned path can start with a /,
+                        // but our format doesn't have a leading /, so we need
+                        // to remove it to normalize it.
+                        const fixedPath = file.path.startsWith("/")
+                            ? file.path.substring(1)
+                            : file.path;
+
                         // If our list of new items doesn't include this item,
                         // delete it.
-                        if (!items.includes(file.path)) {
+                        if (!(fixedPath in files)) {
                             const delete_file_inner =
                                 ProxyInDeleteFile.DeleteFile.toBinary({
-                                    path: file.path,
+                                    path: fixedPath,
                                 });
 
                             const delete_file = ProxyInMain.Main.toBinary({
@@ -365,15 +373,10 @@ function uploadFiles(
                             });
 
                             ws.send(delete_file);
-                        }
-                    }
-
-                    // Next, we'll filter out any items that already exist in the container.
-                    for (const file of inner_message.files) {
-                        // If the item already exists in the container,
-                        // no need to re-upload it.
-                        if (files[file.path] === file.data?.toString()) {
-                            delete files[file.path];
+                        } else if (files[fixedPath] === file.data?.toString()) {
+                            // If the item already exists in the container,
+                            // no need to re-upload it.
+                            delete files[fixedPath];
                         }
                     }
 
