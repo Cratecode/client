@@ -50,7 +50,11 @@ export enum MessageType {
     /**
      * @generated from protobuf enum value: ResizeBash = 5;
      */
-    ResizeBash = 5
+    ResizeBash = 5,
+    /**
+     * @generated from protobuf enum value: RequestClientFile = 6;
+     */
+    RequestClientFile = 6
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class Main$Type extends MessageType$<Main> {

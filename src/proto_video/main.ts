@@ -172,7 +172,13 @@ export enum ActionType {
      *
      * @generated from protobuf enum value: CodeSelect = 15;
      */
-    CodeSelect = 15
+    CodeSelect = 15,
+    /**
+     * SetFile
+     *
+     * @generated from protobuf enum value: SetFile = 16;
+     */
+    SetFile = 16
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class Main$Type extends MessageType<Main> {

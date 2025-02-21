@@ -46,7 +46,11 @@ export enum MessageType {
     /**
      * @generated from protobuf enum value: Stopped = 4;
      */
-    Stopped = 4
+    Stopped = 4,
+    /**
+     * @generated from protobuf enum value: ClientFile = 5;
+     */
+    ClientFile = 5
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class Main$Type extends MessageType$<Main> {
